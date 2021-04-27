@@ -1,0 +1,74 @@
+<html>
+    <head>
+        <title>Pod Controller Experiment</title>
+        <link rel="stylesheet" href="../css/stylesheet.css">
+    </head>
+    <body onload="update()">
+        <div class = creation>
+            <button id="create" onclick="createPod();update()">CREATE ROOM!</button>
+        </div>
+        <div>
+            <table id="table">
+            </table>
+        </div>
+    </body>
+    <script>
+        
+        var ip = "localhost";
+        var port = 3001;
+
+        function getBackendPath () {
+            return "http://" + ip + ":" + port;
+        }
+
+        async function createPod () {
+            await fetch(getBackendPath() + "/createpod", {
+                method: "POST"
+            })
+        }
+
+        async function deletePod (id) {
+            await fetch(getBackendPath() + "/deletepod", {
+                method: "DELETE",
+                body: JSON.stringify({id: id}),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+        }
+
+        async function fetchPods () {
+            let result = {};
+
+            let response = await fetch(getBackendPath() + "/pods", {
+                method: "GET"
+            });
+            let data = await response.json()
+            console.log(data)
+            return data;
+        }
+
+        async function update () {
+            fetchPods().then((pods) => {
+                console.log(pods)
+                rebuildPodTable(pods);
+            })
+        }
+
+        function rebuildPodTable (knownPods) {
+            let table = document.getElementById("table");
+            let html = "";
+
+            knownPods.forEach((pod) => {
+                console.log(pod)
+                html += buildPodRow(pod);
+            }) 
+
+            table.innerHTML = html;
+        }
+
+        function buildPodRow (pod) {
+            return "<tr><td id=\"td-main\">" + pod.id + "</td><td>" + pod.ip + "</td><td>" + pod.domainName + "</td><td><button id=\"delete\" onclick=\"deletePod(" + pod.id + ");update()\">Delete</button></td></tr>"
+        }
+    </script>
+</html>
